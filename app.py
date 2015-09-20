@@ -76,7 +76,7 @@ class PostmatesHandler(tornado.web.RequestHandler):
         http = tornado.httpclient.AsyncHTTPClient()
 
         params = {
-            'manifest': ';'.join(['%s,%s' % (x, post_args[x]) for x in post_args.keys()]),
+            'manifest': ','.join(['%s,%s' % (x, post_args[x]) for x in post_args.keys()]),
             'pickup_name': 'Pickup Place',
             'pickup_address': getAddressFromGeo(post_lat, post_lng),
             'pickup_phone_number': '111-111-1111',

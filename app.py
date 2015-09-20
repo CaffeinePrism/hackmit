@@ -72,12 +72,12 @@ class PostmatesHandler(tornado.web.RequestHandler):
 
         params = {
             'manifest': 'Food delivery',
-            'pickup_name': 'Place',
+            'pickup_name': 'Pickup Place',
             'pickup_address': getAddressFromGeo(post_lat, post_lng),
             'pickup_phone_number': '111-111-1111',
-            'dropoff_name': 'Delivery Place',
+            'dropoff_name': closest_shelter['name'],
             'dropoff_address': getAddressFromGeo(closest_shelter['lat'], closest_shelter['lng']),
-            'dropoff_phone_number': '111-111-2222',
+            'dropoff_phone_number': closest_shelter['phone'],
         }
         request = tornado.httpclient.HTTPRequest(
             'https://api.postmates.com/v1/customers/%s/deliveries' % config.USER,

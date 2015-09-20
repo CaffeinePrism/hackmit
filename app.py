@@ -113,7 +113,7 @@ class PostmatesWebhookHandler(tornado.web.RequestHandler):
             if request['status'] == 'dropoff':
                 self.couriers[delivery_id] = request['data']['courier']
             elif request['status'] == 'delivered':
-                if self.courses.get(delivery_id):
+                if self.couriers.get(delivery_id):
                     del self.couriers[delivery_id]
         elif kind == 'event.courier_update':
             self.couriers[delivery_id] = request['data']['courier']

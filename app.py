@@ -83,6 +83,10 @@ class PostmatesHandler(tornado.web.RequestHandler):
             'dropoff_name': closest_shelter['name'],
             'dropoff_address': getAddressFromGeo(closest_shelter['lat'], closest_shelter['lng']),
             'dropoff_phone_number': closest_shelter['phone'],
+            'robo_pickup': "00:00:01",
+            'robo_pickup_complete': "00:00:02",
+            'robo_dropoff': "00:00:03",
+            'robo_delivered': "00:03:00"
         }
         request = tornado.httpclient.HTTPRequest(
             'https://api.postmates.com/v1/customers/%s/deliveries' % config.USER,

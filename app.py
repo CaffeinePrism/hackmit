@@ -1,4 +1,5 @@
 import json
+import redis
 import tornado.ioloop
 import tornado.httpclient
 import tornado.web
@@ -10,6 +11,9 @@ except ImportError:
 import urllib.parse
 
 import distance_helpers
+
+r = redis.StrictRedis(host='dev.richardli.me', port=6379, db=0)
+
 
 def getAddressFromGeo(lat, lng):
     http = tornado.httpclient.HTTPClient()
@@ -62,21 +66,27 @@ class PostmatesHandler(tornado.web.RequestHandler):
 
         post_args = tornado.escape.json_decode(self.request.body)
         post_lat, post_lng = post_args['lat'], post_args['lng']
-        urls = post_args['image_url']
-        tags = post_args['image_tags']
+        del post_args['lat']
+        del post_args['lng']
+        # post_args is now a dictionary with urls as keys and corresponding tags
+        # for values (each url has only one tag)
 
         closest_shelter = self.shelters[distance_helpers.get_closest(post_lat, post_lng, self.shelters)]
 
         http = tornado.httpclient.AsyncHTTPClient()
 
         params = {
-            'manifest': 'Food delivery',
+            'manifest': ','.join(['%s,%s' % (x, post_args[x]) for x in post_args.keys()]),
             'pickup_name': 'Pickup Place',
             'pickup_address': getAddressFromGeo(post_lat, post_lng),
             'pickup_phone_number': '111-111-1111',
             'dropoff_name': closest_shelter['name'],
             'dropoff_address': getAddressFromGeo(closest_shelter['lat'], closest_shelter['lng']),
             'dropoff_phone_number': closest_shelter['phone'],
+            'robo_pickup': "00:00:01",
+            'robo_pickup_complete': "00:00:02",
+            'robo_dropoff': "00:00:03",
+            'robo_delivered': "00:03:00"
         }
         request = tornado.httpclient.HTTPRequest(
             'https://api.postmates.com/v1/customers/%s/deliveries' % config.USER,
@@ -86,9 +96,32 @@ class PostmatesHandler(tornado.web.RequestHandler):
             )
         response = yield tornado.gen.Task(http.fetch, request)
         response = json.loads(response.body.decode())
+        r.set(response['id'], json.dumps(post_args))
 
         self.write(response)
 
+class PostmatesWebhookHandler(tornado.web.RequestHandler):
+    def initialize(self, couriers):
+        self.couriers = couriers
+
+    def get(self):
+        self.write(json.dumps(self.couriers))
+
+    def post(self):
+        request = tornado.escape.json_decode(self.request.body)
+        print('ping!')
+        kind = request['kind']
+        delivery_id = request['delivery_id']
+        print(kind == 'event.courier_update')
+        if kind == 'event.delivery_status':
+            if request['status'] == 'dropoff':
+                self.couriers[delivery_id] = request['data']['courier']
+            elif request['status'] == 'delivered':
+                if self.couriers.get(delivery_id):
+                    del self.couriers[delivery_id]
+        elif kind == 'event.courier_update':
+            self.couriers[delivery_id] = request['data']['courier']
+            print(self.couriers)
 
 class DeliveryStatusHandler(tornado.web.RequestHandler):
 
@@ -130,10 +163,12 @@ class MainHandler(tornado.web.RequestHandler):
         self.render('web/index.html')
 
 def make_app():
+    couriers = {}
     return tornado.web.Application([
         (r'/', MainHandler),
         (r'/create_delivery', PostmatesHandler),
         (r'/list_delivery', PostmatesHandler),
+        (r'/active_delivery', PostmatesWebhookHandler, dict(couriers=couriers)),
         (r'/delivery_status/([^/]+)', DeliveryStatusHandler),
         (r'/cancel_delivery/([^/]+)', CancelDeliveryHandler),
         (r'/color/(.*)',tornado.web.StaticFileHandler, {'path': './web/color'}),
@@ -142,10 +177,11 @@ def make_app():
         (r'/fonts/(.*)',tornado.web.StaticFileHandler, {'path': './web/fonts'}),
         (r'/img/(.*)',tornado.web.StaticFileHandler, {'path': './web/img'}),
         (r'/js/(.*)',tornado.web.StaticFileHandler, {'path': './web/js'}),
-        (r'/api/latlng', PostmatesHandler)
+        (r'/api/latlng', PostmatesHandler),
+        (r'/api/webhook', PostmatesWebhookHandler, dict(couriers=couriers))
     ], debug=True)
 
+app = make_app()
 if __name__ == '__main__':
-    app = make_app()
     app.listen(8000)
     tornado.ioloop.IOLoop.current().start()

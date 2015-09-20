@@ -111,3 +111,10 @@ body{
     padding-left: 10px;
     padding-right: 10px;
 }
+
+.courier-img {
+    max-width: 200px;
+    max-height: 200px;
+
+    border-radius: 10px;
+}

@@ -62,9 +62,8 @@ class PostmatesHandler(tornado.web.RequestHandler):
 
         post_args = tornado.escape.json_decode(self.request.body)
         post_lat, post_lng = post_args['lat'], post_args['lng']
-        urls = post_args['image_urls']
-
-        tags = self.process_images(urls)
+        urls = post_args['image_url']
+        tags = post_args['image_tags']
 
         closest_shelter = self.shelters[distance_helpers.get_closest(post_lat, post_lng, self.shelters)]
 
@@ -88,18 +87,17 @@ class PostmatesHandler(tornado.web.RequestHandler):
         response = yield tornado.gen.Task(http.fetch, request)
         response = json.loads(response.body.decode())
 
-        response['clarifai_tags'] = tags
         self.write(response)
 
 
 class DeliveryStatusHandler(tornado.web.RequestHandler):
-        
+
     # Get updated info on a single delivery
     @tornado.gen.coroutine
     def get(self, delivery_id):
         http = tornado.httpclient.AsyncHTTPClient()
         request = tornado.httpclient.HTTPRequest(
-            'https://api.postmates.com/v1/customers/%s/deliveries/%s' % 
+            'https://api.postmates.com/v1/customers/%s/deliveries/%s' %
             (config.USER, delivery_id),
             method='GET',
             auth_username=config.POSTMATES_API_KEY,
@@ -115,7 +113,7 @@ class CancelDeliveryHandler(tornado.web.RequestHandler):
         http = tornado.httpclient.AsyncHTTPClient()
 
         request = tornado.httpclient.HTTPRequest(
-            'https://api.postmates.com/v1/customers/%s/deliveries/%s/cancel' % 
+            'https://api.postmates.com/v1/customers/%s/deliveries/%s/cancel' %
             (config.USER, delivery_id),
             method='POST',
             auth_username=config.POSTMATES_API_KEY,

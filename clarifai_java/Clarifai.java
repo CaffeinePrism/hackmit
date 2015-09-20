@@ -7,15 +7,18 @@ import javax.net.ssl.*;
 public class Clarifai {
 	public static void main(String[] args) {
 		
-		String concept = "coca cola can";
+		String concept = "sprite can";
 		String accessToken = "P7cEzNBa9vTylhJOcFaOd8u8ejDC0L";
 		String guess = "http://i.imgur.com/Y93pcRD.png";
+		String namespace = "default";
 		
 		try {
-			URL url = new URL("https://api-alpha.clarifai.com/v1/curator/concepts/default/" + URLEncoder.encode(concept, "UTF-8") + "/predict");
-		    HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+			URL url = new URL("https://api-alpha.clarifai.com/v1/curator/concepts/" + namespace + "/" + URLEncoder.encode(concept, "UTF-8").replaceAll("\\+", "%20") + "/predict");
+		    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		    
-	        String data = URLEncoder.encode("urls", "UTF-8") + "=" + URLEncoder.encode(guess, "UTF-8");
+		    System.out.println(url);
+		    
+	        String data = "{\"urls\": " + "[\"" + guess + "\"]}";
 		
 		    conn.setDoOutput(true);
 		    conn.setDoInput(true);
@@ -40,7 +43,6 @@ public class Clarifai {
 		    String line;
 		    while ((line = rd.readLine()) != null) {
 		        stb.append(line).append("\n");
-		        System.out.println(stb.toString());
 		    }
 		    wr.close();
 		    rd.close();

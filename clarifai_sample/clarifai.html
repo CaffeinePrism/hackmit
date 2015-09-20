@@ -1,0 +1,102 @@
+<head>
+	<title>Clarifai Trainer</title>
+</head>
+
+<body>
+	<h1>Clarifai Trainer</h1>
+	<input type="text" id="train" placeholder="Train"><input type="submit" id="button">
+	<br>
+	<input type="text" id="object" placeholder="Predict URL"><input type="submit" id="predict">
+	<br>
+	<h3 id="result"></h3>
+	<img src="http://placehold.it/350x150" id="image">
+
+	<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript" src="javascript/clarifai-basic.js"></script>
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+	<script>
+
+		var clarifai;
+
+		google.load('search', '1');
+
+		var imageSearch;
+		var query = [];
+		var index = 0;
+
+		var results = [];
+
+		$(window).load(
+		  function(){
+		      clarifai = new Clarifai({ "accessToken" : "P7cEzNBa9vTylhJOcFaOd8u8ejDC0L"});
+		  }  
+		);
+
+		$('#button').on('click', function() {
+			query = $('#train').val().split(",");
+
+	        imageSearch = new google.search.ImageSearch();
+	        imageSearch.setResultSetSize(8);
+
+	        search(query);
+
+        	imageSearch.setSearchCompleteCallback(this, searchComplete, null);
+		});
+
+		function search(query) {
+			if (index >= query.length) {
+
+				for(var i=0; i<results.length; i++) {
+					for(var j=0; j<results.length; j++) {
+						for(var k=0; k<results[j].length; k++) {
+							if (i == j) {
+								clarifai.positive(results[j][k].url, query[i], function(){});
+							} else {
+								clarifai.negative(results[j][k].url, query[i], function(){});
+							}
+						}
+					}
+					clarifai.train(query[i], function(){});
+				}
+
+				index = 0;
+				return;
+			}
+
+			imageSearch.execute(query[index]);
+		}
+
+	function searchComplete() {
+
+        // Check that we got results
+        if (imageSearch.results && imageSearch.results.length > 0) {
+        	console.log(imageSearch.results);
+
+        	results.push(imageSearch.results);
+
+        	index++;
+        	search(query);
+        }
+     }
+
+     $('#predict').on('click', function() {
+     	var best = '';
+     	var best_score = 0;
+
+     	for(var i=0; i<query.length; i++){
+     		var guess = query[i];
+	     	clarifai.predict($('#object').val(), guess, function(result) { 
+	     		if (result.score > best_score) {
+	     			best_score = result.score;
+	     			best = result.concept;
+	     			$('#result').html(best);
+	     			$('#image').attr('src', result.url)
+	     		}
+	     	});
+	     }
+     });
+
+	</script>
+</body>
+

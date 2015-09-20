@@ -91,6 +91,42 @@ class PostmatesHandler(tornado.web.RequestHandler):
         response['clarifai_tags'] = tags
         self.write(response)
 
+
+class DeliveryStatusHandler(tornado.web.RequestHandler):
+        
+    # Get updated info on a single delivery
+    @tornado.gen.coroutine
+    def get(self, delivery_id):
+        http = tornado.httpclient.AsyncHTTPClient()
+        request = tornado.httpclient.HTTPRequest(
+            'https://api.postmates.com/v1/customers/%s/deliveries/%s' % 
+            (config.USER, delivery_id),
+            method='GET',
+            auth_username=config.POSTMATES_API_KEY,
+            )
+        response = yield tornado.gen.Task(http.fetch, request)
+        self.write(response.body)
+
+class CancelDeliveryHandler(tornado.web.RequestHandler):
+
+    # Cancel delivery
+    @tornado.gen.coroutine
+    def post(self, delivery_id):
+        http = tornado.httpclient.AsyncHTTPClient()
+
+        request = tornado.httpclient.HTTPRequest(
+            'https://api.postmates.com/v1/customers/%s/deliveries/%s/cancel' % 
+            (config.USER, delivery_id),
+            method='POST',
+            auth_username=config.POSTMATES_API_KEY,
+            body=urllib.parse.urlencode({'this': 'needs a body'})
+
+            )
+        response = yield tornado.gen.Task(http.fetch, request)
+        response = json.loads(response.body.decode())
+
+        self.write(response)
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render('web/index.html')
@@ -100,6 +136,8 @@ def make_app():
         (r'/', MainHandler),
         (r'/create_delivery', PostmatesHandler),
         (r'/list_delivery', PostmatesHandler),
+        (r'/delivery_status/([^/]+)', DeliveryStatusHandler),
+        (r'/cancel_delivery/([^/]+)', CancelDeliveryHandler),
         (r'/color/(.*)',tornado.web.StaticFileHandler, {'path': './web/color'}),
         (r'/css/(.*)',tornado.web.StaticFileHandler, {'path': './web/css'}),
         (r'/font-awesome/(.*)',tornado.web.StaticFileHandler, {'path': './web/font-awesome'}),

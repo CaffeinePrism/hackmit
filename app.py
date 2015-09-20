@@ -62,15 +62,17 @@ class PostmatesHandler(tornado.web.RequestHandler):
 
         post_args = tornado.escape.json_decode(self.request.body)
         post_lat, post_lng = post_args['lat'], post_args['lng']
-        urls = post_args['image_url']
-        tags = post_args['image_tags']
+        del post_args['lat']
+        del post_args['lng']
+        # post_args is now a dictionary with urls as keys and corresponding tags
+        # for values (each url has only one tag)
 
         closest_shelter = self.shelters[distance_helpers.get_closest(post_lat, post_lng, self.shelters)]
 
         http = tornado.httpclient.AsyncHTTPClient()
 
         params = {
-            'manifest': 'Food delivery',
+            'manifest': 'Food donation - %s' % ', '.join(post_args.values()),
             'pickup_name': 'Pickup Place',
             'pickup_address': getAddressFromGeo(post_lat, post_lng),
             'pickup_phone_number': '111-111-1111',

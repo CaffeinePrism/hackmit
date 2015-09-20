@@ -2,12 +2,15 @@ import json
 import tornado.ioloop
 import tornado.httpclient
 import tornado.web
+import urllib.parse
+
+import distance_helpers
 
 def getAddressFromGeo(lat, lng):
     http = tornado.httpclient.HTTPClient()
     url = 'http://maps.googleapis.com/maps/api/geocode/json'
     try:
-        response = http.fetch('%s?latlng=%s,%s&sensor=false' % 
+        response = http.fetch('%s?latlng=%s,%s&sensor=false' %
                                 (url, lat, lng))
         data = json.loads(response.body.decode())
     except tornado.httpclient.HTTPError as e:
@@ -19,25 +22,41 @@ def getAddressFromGeo(lat, lng):
         return 'No address found'
     return data['results'][0]['formatted_address']
 
-class PostmateHandler(tornado.web.RequestHandler):
+class PostmatesHandler(tornado.web.RequestHandler):
+    def initialize(self):
+        self.shelters = json.load(open('shelters.json', 'r'))
+
     @tornado.gen.coroutine
     def post(self):
         post_args = tornado.escape.json_decode(self.request.body)
+        post_lat, post_lng = post_args['lat'], post_args['lng']
+
+        closest_shelter = self.shelters[distance_helpers.get_closest(post_lat, post_lng, self.shelters)]
+        print(closest_shelter)
+
         http = tornado.httpclient.AsyncHTTPClient()
-        user = 'cus_KUqa0QKBdSyjO-'
+        user = 'cus_KUs0WGz_I6R-V-'
+
+        params = {
+            'manifest': 'Food delivery',
+            'pickup_name': 'Place',
+            'pickup_address': getAddressFromGeo(post_lat, post_lng),
+            'pickup_phone_number': '111-111-1111',
+            'dropoff_name': 'Delivery Place',
+            'dropoff_address': getAddressFromGeo(closest_shelter['lat'], closest_shelter['lng']),
+            'dropoff_phone_number': '111-111-2222',
+        }
+        print(params)
         request = tornado.httpclient.HTTPRequest(
-            'https://api.postmates.com/v1/customers/%s/deliveries' % user, 
+            'https://api.postmates.com/v1/customers/%s/deliveries' % user,
             method='POST',
-            manifest='Food delivery',
-            pickup_name='Place',
-            pickup_address=getAddressFromGeo(post_args['lat'], post_args['lng']),
-            pickup_phone_number='111-111-1111',
-            dropoff_name='Delivery Place',
-            dropoff_address='Delivery Address',
-            dropoff_phone_number='111-111-2222'
+            auth_username='22872798-921b-4f07-970b-343c3881c2b8',
+            body=urllib.parse.urlencode(params)
             )
         response = yield tornado.gen.Task(http.fetch, request)
+        response = json.loads(response.body.decode())
 
+        self.write(response)
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -52,7 +71,8 @@ def make_app():
         (r'/fonts/(.*)',tornado.web.StaticFileHandler, {'path': './web/fonts'}),
         (r'/img/(.*)',tornado.web.StaticFileHandler, {'path': './web/img'}),
         (r'/js/(.*)',tornado.web.StaticFileHandler, {'path': './web/js'}),
-    ])
+        (r'/api/latlng', PostmatesHandler)
+    ], debug=True)
 
 if __name__ == '__main__':
     app = make_app()

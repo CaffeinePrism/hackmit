@@ -1,4 +1,5 @@
 import json
+import redis
 import tornado.ioloop
 import tornado.httpclient
 import tornado.web
@@ -10,6 +11,9 @@ except ImportError:
 import urllib.parse
 
 import distance_helpers
+
+r = redis.StrictRedis(host='dev.richardli.me', port=6379, db=0)
+
 
 def getAddressFromGeo(lat, lng):
     http = tornado.httpclient.HTTPClient()
@@ -72,7 +76,7 @@ class PostmatesHandler(tornado.web.RequestHandler):
         http = tornado.httpclient.AsyncHTTPClient()
 
         params = {
-            'manifest': 'Food donation - %s' % ', '.join(post_args.values()),
+            'manifest': ';'.join(['%s,%s' % (x, post_args[x]) for x in post_args.keys()]),
             'pickup_name': 'Pickup Place',
             'pickup_address': getAddressFromGeo(post_lat, post_lng),
             'pickup_phone_number': '111-111-1111',
@@ -88,6 +92,7 @@ class PostmatesHandler(tornado.web.RequestHandler):
             )
         response = yield tornado.gen.Task(http.fetch, request)
         response = json.loads(response.body.decode())
+        r.set(response['id'], json.dumps(post_args))
 
         self.write(response)
 

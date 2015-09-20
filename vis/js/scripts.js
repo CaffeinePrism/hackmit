@@ -179,6 +179,14 @@ function update() {
                     marker.addListener('click', function(){
 
                                               var split = this.description.split(',');
+                                              var des = this.description;
+
+                                              if (split.length >= 2) {
+                                                des = '';
+                                                for(var j=0; j<split.length-1; j+=2) {
+                                                  des += "<img class='courier-img' src='" + split[j] + "'><br>" + split[j+1] + "<br><br>";
+                                                }
+                                              }
 
                         $('#panel-title').html(this.shelter);
                         $('#item1').html(this.name);
@@ -186,7 +194,7 @@ function update() {
                         $('#item2').html('Delivery Details');
                         $('#par2').html('Pickup address: ' + this.pickup_address + ', ' + this.pickup_city + ', ' + this.pickup_country + '<br>' + 'Destination address: ' + this.dest_address + ', ' + this.dest_city + ', ' + this.dest_country + '<br>Fee: $' + this.fee);
                         $('#item3').html('Delivery Description');
-                        $('#par3').html(split.length < 2 ? this.description : "<img class='courier-img' src='" + split[0] + "'><br>" + split[1]);
+                        $('#par3').html(des);
                         $('#cred1').html('Delivered by ' + this.name);
                         $('#cred2').html('Donated to ' + this.shelter);
                       });
@@ -201,6 +209,14 @@ function update() {
                     marker.addListener('click', function(){
 
                                               var split = this.description.split(',');
+                                              var des = this.description;
+
+                                              if (split.length >= 2) {
+                                                des = '';
+                                                for(var j=0; j<split.length-1; j+=2) {
+                                                  des += "<img class='courier-img' src='" + split[j] + "'><br>" + split[j+1] + "<br><br>";
+                                                }
+                                              }
 
                         $('#panel-title').html(this.shelter);
                         $('#item1').html(this.name);
@@ -208,7 +224,7 @@ function update() {
                         $('#item2').html('Delivery Details');
                         $('#par2').html('Pickup address: ' + this.pickup_address + ', ' + this.pickup_city + ', ' + this.pickup_country + '<br>' + 'Destination address: ' + this.dest_address + ', ' + this.dest_city + ', ' + this.dest_country + '<br>Fee: $' + this.fee);
                         $('#item3').html('Delivery Description');
-                        $('#par3').html(split.length < 2 ? this.description : "<img class='courier-img' src='" + split[0] + "'><br>" + split[1]);
+                        $('#par3').html(des);
                         $('#cred1').html('Delivered by ' + this.name);
                         $('#cred2').html('Donated to ' + this.shelter);
 
@@ -235,7 +251,15 @@ function update() {
 
                     marker.addListener('click', function(){
 
-                        var split = this.description.split(',');
+                                              var split = this.description.split(',');
+                                              var des = this.description;
+
+                                              if (split.length >= 2) {
+                                                des = '';
+                                                for(var j=0; j<split.length-1; j+=2) {
+                                                  des += "<img class='courier-img' src='" + split[j] + "'><br>" + split[j+1] + "<br><br>";
+                                                }
+                                              }
 
 
                         $('#panel-title').html(this.shelter);
@@ -244,7 +268,7 @@ function update() {
                         $('#item2').html('Delivery Details');
                         $('#par2').html('Pickup address: ' + this.pickup_address + ', ' + this.pickup_city + ', ' + this.pickup_country + '<br>' + 'Destination address: ' + this.dest_address + ', ' + this.dest_city + ', ' + this.dest_country + '<br>Fee: $' + this.fee);
                         $('#item3').html('Delivery Description');
-                        $('#par3').html(split.length < 2 ? this.description : "<img class='courier-img' src='" + split[0] + "'><br>" + split[1]);
+                        $('#par3').html(des);
                         $('#cred1').html('Delivered by ' + this.name);
                         $('#cred2').html('Donated to ' + this.shelter);
 
@@ -259,7 +283,15 @@ function update() {
 
                     marker.addListener('click', function(){
 
-                        var split = this.description.split(',');
+                                              var split = this.description.split(',');
+                                              var des = this.description;
+
+                                              if (split.length >= 2) {
+                                                des = '';
+                                                for(var j=0; j<split.length-1; j+=2) {
+                                                  des += "<img class='courier-img' src='" + split[j] + "'><br>" + split[j+1] + "<br><br>";
+                                                }
+                                              }
 
                         $('#panel-title').html(this.shelter);
                         $('#item1').html(this.name);
@@ -267,7 +299,7 @@ function update() {
                         $('#item2').html('Delivery Details');
                         $('#par2').html('Pickup address: ' + this.pickup_address + ', ' + this.pickup_city + ', ' + this.pickup_country + '<br>' + 'Destination address: ' + this.dest_address + ', ' + this.dest_city + ', ' + this.dest_country + '<br>Fee: $' + this.fee);
                         $('#item3').html('Delivery Description');
-                        $('#par3').html(split.length < 2 ? this.description : "<img class='courier-img' src='" + split[0] + "'><br>" + split[1]);
+                        $('#par3').html(des);
                         $('#cred1').html('Delivered by ' + this.name);
                         $('#cred2').html('Donated to ' + this.shelter);
 

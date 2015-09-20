@@ -1,9 +1,5 @@
 /venv/
-<<<<<<< HEAD
 config.py
 *.pyc
-
-=======
 .DS_Store
 __pycache__/
->>>>>>> 793ccab78d6f1a2efb42509487d6e4e04bb69937

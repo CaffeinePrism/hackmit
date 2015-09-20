@@ -81,8 +81,8 @@ class MainHandler(tornado.web.RequestHandler):
 def make_app():
     return tornado.web.Application([
         (r'/', MainHandler),
-        (r'/create_delivery', PostmateHandler),
-        (r'/list_delivery', PostmateHandler),
+        (r'/create_delivery', PostmatesHandler),
+        (r'/list_delivery', PostmatesHandler),
         (r'/color/(.*)',tornado.web.StaticFileHandler, {'path': './web/color'}),
         (r'/css/(.*)',tornado.web.StaticFileHandler, {'path': './web/css'}),
         (r'/font-awesome/(.*)',tornado.web.StaticFileHandler, {'path': './web/font-awesome'}),

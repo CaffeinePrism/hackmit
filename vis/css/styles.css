@@ -24,6 +24,7 @@ body{
 .navbar-custom {
 	background-color: #168ccc;
     color:#fff;
+    box-shadow: 0px 2px 1px #888;
 }
 
 .navbar-custom li>a:hover,.navbar-custom li>a:focus {
@@ -57,7 +58,7 @@ body{
 #right {
     background-color: #fff;
 	height:100%;
-    box-shadow: -3px 0px 1px #888;
+    box-shadow: -2px 0px 1px #bbb;
 }
 
 #map-canvas {
@@ -75,4 +76,38 @@ body{
     font-size: 16px;
     padding: 4px;
     padding-right: 100px;
+}
+
+#items {
+    text-align:center;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.item {
+    border-radius: 9999px;
+    border: 1px solid #000;
+    display: inline-block;
+
+    max-width: 70px;
+    height: 70px;
+    margin: 10px;
+}
+
+.item:hover {
+    box-shadow: 0px 0px 4px #ddd;
+}
+
+#panel-title {
+    text-align: center;
+    font-size: 48px;
+}
+
+#credits {
+    text-align: center;
+}
+
+#right p {
+    padding-left: 10px;
+    padding-right: 10px;
 }

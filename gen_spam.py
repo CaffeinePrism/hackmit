@@ -3,8 +3,6 @@ import json
 import config
 
 import distance_helpers
-print((random.random()-0.5)*2/10)
-
 
 import urllib.request
 import base64
@@ -21,6 +19,9 @@ def getAddressFromGeo(lat, lng):
 
 
 lat, lng = (42.358901, -71.096952)
+lat += (random.random()-0.5)*8/100
+lng += (random.random()-0.5)*8/100
+
 shelters = json.load(open('shelters.json', 'r'))
 closest_shelter = shelters[distance_helpers.get_closest(lat, lng, shelters)]
 params = {
@@ -34,7 +35,7 @@ params = {
     'robo_pickup': "00:00:01",
     'robo_pickup_complete': "00:00:02",
     'robo_dropoff': "00:00:03",
-    'robo_delivered': "00:10:00"
+    'robo_delivered': "00:04:00"
 }
 request = urllib.request.Request(
     'https://api.postmates.com/v1/customers/%s/deliveries' % config.USER,

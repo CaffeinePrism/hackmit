@@ -158,27 +158,17 @@ class CancelDeliveryHandler(tornado.web.RequestHandler):
 
         self.write(response)
 
-class MainHandler(tornado.web.RequestHandler):
-    def get(self):
-        self.render('web/index.html')
-
 def make_app():
     couriers = {}
     return tornado.web.Application([
-        (r'/', MainHandler),
         (r'/create_delivery', PostmatesHandler),
         (r'/list_delivery', PostmatesHandler),
         (r'/active_delivery', PostmatesWebhookHandler, dict(couriers=couriers)),
         (r'/delivery_status/([^/]+)', DeliveryStatusHandler),
         (r'/cancel_delivery/([^/]+)', CancelDeliveryHandler),
-        (r'/color/(.*)',tornado.web.StaticFileHandler, {'path': './web/color'}),
-        (r'/css/(.*)',tornado.web.StaticFileHandler, {'path': './web/css'}),
-        (r'/font-awesome/(.*)',tornado.web.StaticFileHandler, {'path': './web/font-awesome'}),
-        (r'/fonts/(.*)',tornado.web.StaticFileHandler, {'path': './web/fonts'}),
-        (r'/img/(.*)',tornado.web.StaticFileHandler, {'path': './web/img'}),
-        (r'/js/(.*)',tornado.web.StaticFileHandler, {'path': './web/js'}),
         (r'/api/latlng', PostmatesHandler),
-        (r'/api/webhook', PostmatesWebhookHandler, dict(couriers=couriers))
+        (r'/api/webhook', PostmatesWebhookHandler, dict(couriers=couriers)),
+        (r'/(.*)',tornado.web.StaticFileHandler, {'path': './vis', 'default_filename': 'index.html'})
     ], debug=True)
 
 app = make_app()

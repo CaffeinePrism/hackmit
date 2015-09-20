@@ -96,6 +96,28 @@ class PostmatesHandler(tornado.web.RequestHandler):
 
         self.write(response)
 
+class PostmatesWebhookHandler(tornado.web.RequestHandler):
+    def initialize(self, couriers):
+        self.couriers = couriers
+
+    def get(self):
+        self.write(json.dumps(self.couriers))
+
+    def post(self):
+        request = tornado.escape.json_decode(self.request.body)
+        print('ping!')
+        kind = request['kind']
+        delivery_id = request['delivery_id']
+        print(kind == 'event.courier_update')
+        if kind == 'event.delivery_status':
+            if request['status'] == 'dropoff':
+                self.couriers[delivery_id] = request['data']['courier']
+            elif request['status'] == 'delivered':
+                if self.courses.get(delivery_id):
+                    del self.couriers[delivery_id]
+        elif kind == 'event.courier_update':
+            self.couriers[delivery_id] = request['data']['courier']
+            print(self.couriers)
 
 class DeliveryStatusHandler(tornado.web.RequestHandler):
 
@@ -137,10 +159,12 @@ class MainHandler(tornado.web.RequestHandler):
         self.render('web/index.html')
 
 def make_app():
+    couriers = {}
     return tornado.web.Application([
         (r'/', MainHandler),
         (r'/create_delivery', PostmatesHandler),
         (r'/list_delivery', PostmatesHandler),
+        (r'/active_delivery', PostmatesWebhookHandler, dict(couriers=couriers)),
         (r'/delivery_status/([^/]+)', DeliveryStatusHandler),
         (r'/cancel_delivery/([^/]+)', CancelDeliveryHandler),
         (r'/color/(.*)',tornado.web.StaticFileHandler, {'path': './web/color'}),
@@ -149,7 +173,8 @@ def make_app():
         (r'/fonts/(.*)',tornado.web.StaticFileHandler, {'path': './web/fonts'}),
         (r'/img/(.*)',tornado.web.StaticFileHandler, {'path': './web/img'}),
         (r'/js/(.*)',tornado.web.StaticFileHandler, {'path': './web/js'}),
-        (r'/api/latlng', PostmatesHandler)
+        (r'/api/latlng', PostmatesHandler),
+        (r'/api/webhook', PostmatesWebhookHandler, dict(couriers=couriers))
     ], debug=True)
 
 app = make_app()

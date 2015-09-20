@@ -37,19 +37,36 @@ class PostmatesHandler(tornado.web.RequestHandler):
         request = tornado.httpclient.HTTPRequest(
             'https://api.postmates.com/v1/customers/%s/deliveries' % config.USER,
             method='GET',
-            auth_username=config.API_KEY,
+            auth_username=config.POSTMATES_API_KEY,
             )
         response = yield tornado.gen.Task(http.fetch, request)
         self.write(response.body)
-        
+
+    def process_images(self, urls):
+        http = tornado.httpclient.HTTPClient()
+        d = {}
+        for url in urls:
+            request = tornado.httpclient.HTTPRequest(
+                'https://api.clarifai.com/v1/tag/?url=%s' % url,
+                method='GET',
+                headers={'Authorization': 'Bearer %s' % config.CLARIFAI_API_KEY}
+            )
+
+            response = http.fetch(request)
+            response = json.loads(response.body.decode())
+            d[url] = response['results'][0]['result']['tag']['classes'][0:3]
+        return d
+
     @tornado.gen.coroutine
     def post(self):
 
         post_args = tornado.escape.json_decode(self.request.body)
         post_lat, post_lng = post_args['lat'], post_args['lng']
+        urls = post_args['image_urls']
+
+        tags = self.process_images(urls)
 
         closest_shelter = self.shelters[distance_helpers.get_closest(post_lat, post_lng, self.shelters)]
-        print(closest_shelter)
 
         http = tornado.httpclient.AsyncHTTPClient()
 
@@ -62,16 +79,16 @@ class PostmatesHandler(tornado.web.RequestHandler):
             'dropoff_address': getAddressFromGeo(closest_shelter['lat'], closest_shelter['lng']),
             'dropoff_phone_number': '111-111-2222',
         }
-        print(params)
         request = tornado.httpclient.HTTPRequest(
             'https://api.postmates.com/v1/customers/%s/deliveries' % config.USER,
             method='POST',
-            auth_username=config.API_KEY,
+            auth_username=config.POSTMATES_API_KEY,
             body=urllib.parse.urlencode(params)
             )
         response = yield tornado.gen.Task(http.fetch, request)
         response = json.loads(response.body.decode())
 
+        response['clarifai_tags'] = tags
         self.write(response)
 
 class MainHandler(tornado.web.RequestHandler):
